@@ -34,6 +34,8 @@ export const buttons = StrictDict({
     horiz: 'fliph',
   }),
   formatSelect: 'formatSelect',
+  fontsizeselect: 'fontsizeselect',
+  fontselect: 'fontselect',
   hr: 'hr',
   imageUploadButton: 'imageuploadbutton',
   indent: 'indent',
