@@ -49,6 +49,7 @@ interface SectionCardProps {
   index: number;
   canMoveItem: (oldIndex: number, newIndex: number) => boolean;
   onOrderChange: (oldIndex: number, newIndex: number) => void;
+  onAddUnitAtSection?: (sectionId: string) => void;
 }
 
 const SectionCard = ({
@@ -136,6 +137,14 @@ const SectionCard = ({
     isHeaderVisible = true,
     upstreamInfo,
   } = section;
+  console.log('sectionActions for', displayName, sectionActions);
+  console.log('Section Debug', {
+  name: displayName,
+  children: section.childInfo?.children,
+  childrenCount: section.childInfo?.children?.length,
+  actions: sectionActions,
+  childAddable: sectionActions?.childAddable,
+});
 
   const blockSyncData = useMemo(() => {
     if (!upstreamInfo?.readyToSync) {
@@ -212,6 +221,7 @@ const SectionCard = ({
     visibilityState,
     hasChanges,
   });
+  console.log('sectionStatus', sectionStatus, { published, visibilityState, hasChanges });
 
   // remove border when section is expanded
   const borderStyle = getItemStatusBorder(!isExpanded ? sectionStatus : undefined);
@@ -274,6 +284,17 @@ const SectionCard = ({
     }
   }, [openContainerSidebar]);
 
+  // around line ~200, just before the titleComponent = ( ... ) block
+
+console.log('CardHeader props', {
+  cardId: id,
+  actions,
+  status: sectionStatus,
+  hasChanges,
+  readyToSync: upstreamInfo?.readyToSync,
+});
+
+console.log('sectionStatus', sectionStatus, { published, visibilityState, hasChanges });
   return (
     <>
       <SortableItem
@@ -379,13 +400,11 @@ const SectionCard = ({
                 className={classNames('section-card__subsections', { 'item-children': isDraggable })}
               >
                 {children}
-                {actions.childAddable && (
-                  <OutlineAddChildButtons
-                    onClickCard={(e) => onClickCard(e, true)}
-                    childType={ContainerType.Subsection}
-                    parentLocator={section.id}
-                  />
-                )}
+                {/* {onAddUnitAtSection && sectionActions.childAddable && (
+                  <Button onClick={() => onAddUnitAtSection(section.id)}>
+                    Add Unit
+                  </Button>
+                )} */}
               </div>
             )}
           </div>

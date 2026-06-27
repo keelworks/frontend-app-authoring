@@ -88,6 +88,7 @@ const SubsectionCard = ({
   const { data: subsection = initialData } = useCourseItemData(initialData.id, initialData);
   const { data: scrollState, resetData: resetScrollState } = useScrollState(courseId);
   const isScrolledToElement = locatorId === subsection.id;
+  console.log('Subsection carddddddddddd');
 
   const {
     id,
@@ -204,7 +205,7 @@ const SubsectionCard = ({
 
   const titleComponent = (
     <TitleButton
-      title={displayName}
+      title=""
       isExpanded={isExpanded}
       onTitleClick={handleExpandContent}
       namePrefix={namePrefix}
@@ -263,124 +264,27 @@ const SubsectionCard = ({
   }, [openContainerSidebar]);
 
   return (
-    <>
-      <SortableItem
-        id={id}
-        data={{
-          category,
-          displayName,
-          childAddable: actions.childAddable,
-          status: subsectionStatus,
-        }}
-        key={id}
-        isDraggable={isDraggable}
-        isDroppable={actions.childAddable || section.actions.childAddable}
-        componentStyle={{
-          background: '#f8f7f6',
-          ...borderStyle,
-        }}
-        onClick={(e) => onClickCard(e, true)}
-      >
-        <div
-          className={classNames(
-            'subsection-card',
-            {
-              highlight: isScrolledToElement,
-              'outline-card-selected': subsection.id === selectedContainerState?.currentId,
-            },
-          )}
-          data-testid="subsection-card"
-          ref={currentRef}
-        >
-          {isHeaderVisible && (
-            <>
-              <CardHeader
-                title={displayName}
-                status={subsectionStatus}
-                cardId={id}
-                hasChanges={hasChanges}
-                onClickMenuButton={handleClickMenuButton}
-                onClickPublish={() => openPublishModal({ value: subsection, sectionId: section.id })}
-                onClickDelete={onOpenDeleteModal}
-                onClickUnlink={/* istanbul ignore next */ () =>
-                  openUnlinkModal({
-                    value: subsection,
-                    sectionId: section.id,
-                  })}
-                onClickMoveUp={handleSubsectionMoveUp}
-                onClickMoveDown={handleSubsectionMoveDown}
-                onClickConfigure={onOpenConfigureModal}
-                onClickSync={openSyncModal}
-                onClickCard={(e) => onClickCard(e, true)}
-                onClickDuplicate={onDuplicateSubmit}
-                onClickManageTags={handleClickManageTags}
-                titleComponent={titleComponent}
-                namePrefix={namePrefix}
-                actions={actions}
-                proctoringExamConfigurationLink={proctoringExamConfigurationLink}
-                isSequential
-                extraActionsComponent={extraActionsComponent}
-                readyToSync={upstreamInfo?.readyToSync}
-              />
-              {
-                /* This is a special case; we can skip accessibility here (tabbing and select with keyboard) since the
-                `SortableItem` component handles that for the whole `SubsectionCard`.
-                This `onClick` allows the user to select the Card by clicking on white areas of this component. */
-              }
-              <div // eslint-disable-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events
-                className="subsection-card__content item-children"
-                data-testid="subsection-card__content"
-                onClick={
-                  /* istanbul ignore next */
-                  (e) => onClickCard(e, false)
-                }
-              >
-                <XBlockStatus
-                  isSelfPaced={isSelfPaced}
-                  isCustomRelativeDatesActive={isCustomRelativeDatesActive}
-                  blockData={subsection}
-                />
-              </div>
-            </>
-          )}
-          {isExpanded && (
-            <div
-              data-testid="subsection-card__units"
-              className={classNames('subsection-card__units', { 'item-children': isDraggable })}
-            >
-              {children}
-              {actions.childAddable && (
-                <>
-                  <OutlineAddChildButtons
-                    onClickCard={(e) => onClickCard(e, true)}
-                    childType={ContainerType.Unit}
-                    parentLocator={subsection.id}
-                    grandParentLocator={section.id}
-                  />
-                  {enableCopyPasteUnits && showPasteUnit && sharedClipboardData && (
-                    <PasteComponent
-                      className="mt-4 border-gray-500 rounded-0"
-                      text={intl.formatMessage(messages.pasteButton)}
-                      clipboardData={sharedClipboardData}
-                      onClick={handlePasteButtonClick}
-                    />
-                  )}
-                </>
-              )}
-            </div>
-          )}
-        </div>
-      </SortableItem>
-      {blockSyncData && (
-        <PreviewLibraryXBlockChanges
-          blockData={blockSyncData}
-          isModalOpen={isSyncModalOpen}
-          closeModal={closeSyncModal}
-          postChange={handleOnPostChangeSync}
-        />
-      )}
-    </>
-  );
+  <>
+    {children}
+
+    {actions.childAddable && (
+      <OutlineAddChildButtons
+        childType={ContainerType.Unit}
+        parentLocator={subsection.id}
+        grandParentLocator={section.id}
+      />
+    )}
+
+    {blockSyncData && (
+      <PreviewLibraryXBlockChanges
+        blockData={blockSyncData}
+        isModalOpen={isSyncModalOpen}
+        closeModal={closeSyncModal}
+        postChange={handleOnPostChangeSync}
+      />
+    )}
+  </>
+);
 };
 
 export default SubsectionCard;

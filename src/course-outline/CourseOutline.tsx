@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import {
   Container,
@@ -40,7 +40,6 @@ import {
 import { COURSE_BLOCK_NAMES } from './constants';
 import EnableHighlightsModal from './enable-highlights-modal/EnableHighlightsModal';
 import SectionCard from './section-card/SectionCard';
-import SubsectionCard from './subsection-card/SubsectionCard';
 import UnitCard from './unit-card/UnitCard';
 import HighlightsModal from './highlights-modal/HighlightsModal';
 import EmptyPlaceholder from './empty-placeholder/EmptyPlaceholder';
@@ -50,14 +49,44 @@ import DraggableList from './drag-helper/DraggableList';
 import {
   canMoveSection,
   possibleUnitMoves,
-  possibleSubsectionMoves,
 } from './drag-helper/utils';
 import { useCourseOutline } from './hooks';
 import messages from './messages';
 import headerMessages from './header-navigations/messages';
+import { useConfigureSubsection } from './data/apiHooks';
 import { getTagsExportFile } from './data/api';
 import OutlineAddChildButtons from './OutlineAddChildButtons';
 import { StatusBar } from './status-bar/StatusBar';
+
+const AutoCreateSubsection = ({ parentLocator }: { parentLocator: string }) => {
+  const { handleAddBlock } = useCourseOutlineContext();
+  const configureSubsection = useConfigureSubsection();
+  const hasRun = useRef(false);
+
+  useEffect(() => {
+    if (!hasRun.current) {
+      hasRun.current = true;
+      (handleAddBlock.mutateAsync as any)({
+        type: ContainerType.Sequential,
+        parentLocator,
+        displayName: 'Subsection',
+        sectionId: parentLocator,
+      }).then((data: { locator: string }) => {
+        // Hide subsection from learners automatically
+        (configureSubsection.mutate as any)({
+          itemId: data.locator,
+          isVisibleToStaffOnly: true,
+          sectionId: parentLocator,
+        });
+      }).catch((e) => {
+        console.error('Failed to auto-create subsection:', e);
+        hasRun.current = false;
+      });
+    }
+  }, []);
+
+  return null;
+};
 
 const CourseOutline = () => {
   const intl = useIntl();
@@ -129,11 +158,9 @@ const CourseOutline = () => {
     handleUnlinkItemSubmit,
   } = useCourseOutline({ courseId });
 
-  // Use `setToastMessage` to show the toast.
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    // Wait for the course data to load before exporting tags.
     if (courseId && courseName && location.hash === '#export-tags') {
       setToastMessage(intl.formatMessage(messages.exportTagsCreatingToastMessage));
       getTagsExportFile(courseId, courseName).then(() => {
@@ -141,8 +168,6 @@ const CourseOutline = () => {
       }).catch(() => {
         setToastMessage(intl.formatMessage(messages.exportTagsErrorToastMessage));
       });
-
-      // Delete `#export-tags` from location
       window.location.href = '#';
     }
   }, [location, courseId, courseName]);
@@ -156,7 +181,6 @@ const CourseOutline = () => {
   const enableTimedExams = useSelector(getTimedExamsFlag);
 
   if (isLoading) {
-    // eslint-disable-next-line react/jsx-no-useless-fragment
     return (
       <Row className="m-0 mt-4 justify-content-center">
         <LoadingSpinner />
@@ -206,21 +230,19 @@ const CourseOutline = () => {
           />
           <LegacyLibContentBlockAlert courseId={courseId} />
           <TransitionReplace>
-            {showSuccessAlert ?
-              (
-                <AlertMessage
-                  key={intl.formatMessage(messages.alertSuccessAriaLabelledby)}
-                  show={showSuccessAlert}
-                  variant="success"
-                  icon={CheckCircleIcon}
-                  title={intl.formatMessage(messages.alertSuccessTitle)}
-                  description={intl.formatMessage(messages.alertSuccessDescription)}
-                  aria-hidden="true"
-                  aria-labelledby={intl.formatMessage(messages.alertSuccessAriaLabelledby)}
-                  aria-describedby={intl.formatMessage(messages.alertSuccessAriaDescribedby)}
-                />
-              ) :
-              null}
+            {showSuccessAlert ? (
+              <AlertMessage
+                key={intl.formatMessage(messages.alertSuccessAriaLabelledby)}
+                show={showSuccessAlert}
+                variant="success"
+                icon={CheckCircleIcon}
+                title={intl.formatMessage(messages.alertSuccessTitle)}
+                description={intl.formatMessage(messages.alertSuccessDescription)}
+                aria-hidden="true"
+                aria-labelledby={intl.formatMessage(messages.alertSuccessAriaLabelledby)}
+                aria-describedby={intl.formatMessage(messages.alertSuccessAriaDescribedby)}
+              />
+            ) : null}
           </TransitionReplace>
           <SubHeader
             title={courseName}
@@ -269,120 +291,107 @@ const CourseOutline = () => {
                   <section>
                     {!errors?.outlineIndexApi && (
                       <div className="pt-4">
-                        {sections.length ?
-                          (
-                            <>
-                              <DraggableList
+                        {sections.length ? (
+                          <>
+                            <DraggableList
+                              items={sections}
+                              setSections={setSections}
+                              restoreSectionList={restoreSectionList}
+                              handleSectionDragAndDrop={handleSectionDragAndDrop}
+                              handleSubsectionDragAndDrop={handleSubsectionDragAndDrop}
+                              handleUnitDragAndDrop={handleUnitDragAndDrop}
+                            >
+                              <SortableContext
+                                id="root"
                                 items={sections}
-                                setSections={setSections}
-                                restoreSectionList={restoreSectionList}
-                                handleSectionDragAndDrop={handleSectionDragAndDrop}
-                                handleSubsectionDragAndDrop={handleSubsectionDragAndDrop}
-                                handleUnitDragAndDrop={handleUnitDragAndDrop}
+                                strategy={verticalListSortingStrategy}
                               >
-                                <SortableContext
-                                  id="root"
-                                  items={sections}
-                                  strategy={verticalListSortingStrategy}
-                                >
-                                  {sections.map((section, sectionIndex) => (
-                                    <SectionCard
-                                      key={section.id}
-                                      section={section}
-                                      index={sectionIndex}
-                                      canMoveItem={canMoveSection(sections)}
-                                      isSelfPaced={statusBarData.isSelfPaced}
-                                      isCustomRelativeDatesActive={isCustomRelativeDatesActive}
-                                      onOpenHighlightsModal={handleOpenHighlightsModal}
-                                      onOpenConfigureModal={openConfigureModal}
-                                      onOpenDeleteModal={openDeleteModal}
-                                      onDuplicateSubmit={handleDuplicateSectionSubmit}
-                                      isSectionsExpanded={isSectionsExpanded}
-                                      onOrderChange={updateSectionOrderByIndex}
-                                    >
+                                {sections.map((section, sectionIndex) => (
+                                  <SectionCard
+                                    key={section.id}
+                                    section={section}
+                                    index={sectionIndex}
+                                    canMoveItem={canMoveSection(sections)}
+                                    isSelfPaced={statusBarData.isSelfPaced}
+                                    isCustomRelativeDatesActive={isCustomRelativeDatesActive}
+                                    onOpenHighlightsModal={handleOpenHighlightsModal}
+                                    onOpenConfigureModal={openConfigureModal}
+                                    onOpenDeleteModal={openDeleteModal}
+                                    onDuplicateSubmit={handleDuplicateSectionSubmit}
+                                    isSectionsExpanded={isSectionsExpanded}
+                                    onOrderChange={updateSectionOrderByIndex}
+                                  >
+                                    {/* Auto-create a hidden subsection if section has none */}
+                                    {(section.childInfo?.children ?? []).length === 0 && courseActions.childAddable && (
+                                      <AutoCreateSubsection parentLocator={section.id} />
+                                    )}
+
+                                    {/* Render units directly, hiding subsection layer */}
+                                    {(section.childInfo?.children ?? []).map((subsection, subsectionIndex) => (
                                       <SortableContext
-                                        id={section.id}
-                                        items={section.childInfo.children}
+                                        key={subsection.id}
+                                        id={subsection.id}
+                                        items={subsection.childInfo?.children ?? []}
                                         strategy={verticalListSortingStrategy}
                                       >
-                                        {section.childInfo.children.map((subsection, subsectionIndex) => (
-                                          <SubsectionCard
-                                            key={subsection.id}
-                                            section={section}
+                                        {(subsection.childInfo?.children ?? []).map((unit, unitIndex) => (
+                                          <UnitCard
+                                            key={unit.id}
+                                            unit={unit}
                                             subsection={subsection}
-                                            index={subsectionIndex}
-                                            getPossibleMoves={possibleSubsectionMoves(
-                                              [...sections],
-                                              sectionIndex,
-                                              section,
-                                              section.childInfo.children,
-                                            )}
-                                            isSectionsExpanded={isSectionsExpanded}
+                                            section={section}
                                             isSelfPaced={statusBarData.isSelfPaced}
                                             isCustomRelativeDatesActive={isCustomRelativeDatesActive}
-                                            onOpenDeleteModal={openDeleteModal}
-                                            onDuplicateSubmit={handleDuplicateSubsectionSubmit}
+                                            index={unitIndex}
+                                            getPossibleMoves={possibleUnitMoves(
+                                              [...sections],
+                                              sectionIndex,
+                                              subsectionIndex,
+                                              section,
+                                              subsection,
+                                              subsection.childInfo?.children ?? [],
+                                            )}
                                             onOpenConfigureModal={openConfigureModal}
-                                            onOrderChange={updateSubsectionOrderByIndex}
-                                            onPasteClick={handlePasteClipboardClick}
-                                          >
-                                            <SortableContext
-                                              id={subsection.id}
-                                              items={subsection.childInfo.children}
-                                              strategy={verticalListSortingStrategy}
-                                            >
-                                              {subsection.childInfo.children.map((unit, unitIndex) => (
-                                                <UnitCard
-                                                  key={unit.id}
-                                                  unit={unit}
-                                                  subsection={subsection}
-                                                  section={section}
-                                                  isSelfPaced={statusBarData.isSelfPaced}
-                                                  isCustomRelativeDatesActive={isCustomRelativeDatesActive}
-                                                  index={unitIndex}
-                                                  getPossibleMoves={possibleUnitMoves(
-                                                    [...sections],
-                                                    sectionIndex,
-                                                    subsectionIndex,
-                                                    section,
-                                                    subsection,
-                                                    subsection.childInfo.children,
-                                                  )}
-                                                  onOpenConfigureModal={openConfigureModal}
-                                                  onOpenDeleteModal={openDeleteModal}
-                                                  onDuplicateSubmit={handleDuplicateUnitSubmit}
-                                                  onOrderChange={updateUnitOrderByIndex}
-                                                  discussionsSettings={discussionsSettings}
-                                                />
-                                              ))}
-                                            </SortableContext>
-                                          </SubsectionCard>
+                                            onOpenDeleteModal={openDeleteModal}
+                                            onDuplicateSubmit={handleDuplicateUnitSubmit}
+                                            onOrderChange={updateUnitOrderByIndex}
+                                            discussionsSettings={discussionsSettings}
+                                          />
                                         ))}
+
+                                        {/* New Unit button per hidden subsection */}
+                                        {courseActions.childAddable && (
+                                          <OutlineAddChildButtons
+                                            childType={ContainerType.Unit}
+                                            parentLocator={subsection.id}
+                                            grandParentLocator={section.id}
+                                          />
+                                        )}
                                       </SortableContext>
-                                    </SectionCard>
-                                  ))}
-                                </SortableContext>
-                              </DraggableList>
-                              {courseActions.childAddable && (
-                                <OutlineAddChildButtons
-                                  childType={ContainerType.Section}
-                                  parentLocator={courseUsageKey}
-                                />
-                              )}
-                            </>
-                          ) :
-                          (
-                            <EmptyPlaceholder>
-                              {courseActions.childAddable && (
-                                <OutlineAddChildButtons
-                                  childType={ContainerType.Section}
-                                  parentLocator={courseUsageKey}
-                                  btnVariant="primary"
-                                  btnClasses="mt-1"
-                                />
-                              )}
-                            </EmptyPlaceholder>
-                          )}
+                                    ))}
+                                  </SectionCard>
+                                ))}
+                              </SortableContext>
+                            </DraggableList>
+                            {courseActions.childAddable && (
+                              <OutlineAddChildButtons
+                                childType={ContainerType.Section}
+                                parentLocator={courseUsageKey}
+                              />
+                            )}
+                          </>
+                        ) : (
+                          <EmptyPlaceholder>
+                            {courseActions.childAddable && (
+                              <OutlineAddChildButtons
+                                childType={ContainerType.Section}
+                                parentLocator={courseUsageKey}
+                                btnVariant="primary"
+                                btnClasses="mt-1"
+                              />
+                            )}
+                          </EmptyPlaceholder>
+                        )}
                       </div>
                     )}
                   </section>
@@ -411,10 +420,6 @@ const CourseOutline = () => {
           isOpen={isConfigureModalOpen}
           onClose={handleConfigureModalClose}
           onConfigureSubmit={handleConfigureItemSubmit}
-          /**
-           * Only sections need overflow visible (for the Release date datepicker, fixed in #2901);
-           * enabling it for subsection/unit modals causes the Visibility tab background to clip.
-           */
           isOverflowVisible={itemCategory === COURSE_BLOCK_NAMES.chapter.id}
           currentItemData={currentItemData}
           enableProctoredExams={enableProctoredExams}
@@ -445,7 +450,7 @@ const CourseOutline = () => {
       {toastMessage && (
         <Toast
           show
-          onClose={/* istanbul ignore next */ () => setToastMessage(null)}
+          onClose={() => setToastMessage(null)}
           data-testid="taxonomy-toast"
         >
           {toastMessage}
