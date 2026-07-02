@@ -3,6 +3,31 @@
   font-weight: var(--pgn-typography-font-weight-normal);
 }
 
+.unit-subtitle {
+  .unit-subtitle-edit-button {
+    opacity: 0;
+    transition: opacity .3s linear;
+
+    &:focus {
+      opacity: 1;
+    }
+  }
+
+  &:hover {
+    .unit-subtitle-edit-button {
+      opacity: 1;
+    }
+  }
+}
+
+.unit-subtitle-add-btn {
+  opacity: 0.6;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
 .unit-header-title {
   .edit-button {
     opacity: 0;

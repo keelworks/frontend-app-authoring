@@ -42,7 +42,6 @@ const pluginConfig = ({ placeholder, editorType, enableImageUpload }) => {
         mapToolbars([
           [buttons.undo, buttons.redo],
           [buttons.formatSelect],
-          [buttons.fontselect, buttons.fontsizeselect],
           [labelButton],
           [buttons.bold, buttons.italic, buttons.underline, buttons.foreColor, buttons.backColor],
           [
@@ -95,8 +94,6 @@ const pluginConfig = ({ placeholder, editorType, enableImageUpload }) => {
         convert_urls: false,
         placeholder,
         statusbar,
-        fontsize_formats: '8pt 10pt 12pt 14pt 16pt 18pt 24pt 36pt',
-        font_formats: 'Arial=arial,helvetica,sans-serif; Georgia=georgia,palatino; Times New Roman=times new roman,times; Courier New=courier new,courier;',
         block_formats:
           'Header 1=h1;Header 2=h2;Header 3=h3;Header 4=h4;Header 5=h5;Header 6=h6;Div=div;Paragraph=p;Preformatted=pre',
         forced_root_block: defaultFormat,

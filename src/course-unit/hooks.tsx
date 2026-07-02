@@ -23,6 +23,7 @@ import {
   deleteUnitItemQuery,
   duplicateUnitItemQuery,
   editCourseItemQuery,
+  editCourseSubtitleQuery,
   fetchCourseSectionVerticalData,
   fetchCourseVerticalChildrenData,
   getCourseOutlineInfoQuery,
@@ -74,7 +75,7 @@ export const useCourseUnit = ({
   const { currentlyVisibleToStudents } = courseUnit;
   const { sharedClipboardData, showPasteXBlock, showPasteUnit } = useClipboard(canEdit);
   const { canPasteComponent } = courseVerticalChildren;
-  const { displayName: unitTitle, category: unitCategory } = xblockInfo;
+  const { displayName: unitTitle, category: unitCategory, subtitle: unitSubtitle = '' } = xblockInfo;
   const sequenceId = courseUnit.ancestorInfo?.ancestors[0]?.id;
   const sectionId = courseUnit.ancestorInfo?.ancestors[1]?.id;
   const isUnitVerticalType = unitCategory === COURSE_BLOCK_NAMES.vertical.id;
@@ -95,6 +96,10 @@ export const useCourseUnit = ({
     handleEdit: () => {
       sendMessageToIframe(messageTypes.editXBlock, { id: courseUnit.id }, window);
     },
+  };
+
+  const handleSubtitleEditSubmit = (subtitle: string) => {
+    dispatch(editCourseSubtitleQuery(blockId, subtitle, sequenceId));
   };
 
   const handleTitleEdit = () => {
@@ -264,8 +269,10 @@ export const useCourseUnit = ({
     showPasteUnit,
     unitXBlockActions,
     headerNavigationsActions,
+    unitSubtitle,
     handleTitleEdit,
     handleTitleEditSubmit,
+    handleSubtitleEditSubmit,
     courseVerticalChildren,
     canPasteComponent,
     isMoveModalOpen,
