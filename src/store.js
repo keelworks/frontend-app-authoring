@@ -2,7 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 
 // FIXME: because the 'live' plugin is using Redux, we have to hard-code a reference to it here.
 // If this app + the plugin were using React-query, there'd be no issues.
-import { reducer as liveReducer } from '@openedx-plugins/course-app-live/data/slice';
+import { reducer as liveReducer } from  '../plugins/course-apps/live/data/slice';
 
 import { reducer as modelsReducer } from './generic/model-store';
 import { reducer as courseDetailReducer } from './data/slice';

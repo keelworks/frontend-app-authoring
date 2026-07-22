@@ -102,6 +102,7 @@ const CourseOutline = ({ courseId }) => {
     handleNewSectionSubmit,
     handleNewSubsectionSubmit,
     handleNewUnitSubmit,
+    handleNewUnitSubmitForSection,
     getUnitUrl,
     handleVideoSharingOptionChange,
     handlePasteClipboardClick,
@@ -334,7 +335,7 @@ const CourseOutline = ({ courseId }) => {
                                     onEditSectionSubmit={handleEditSubmit}
                                     onDuplicateSubmit={handleDuplicateSectionSubmit}
                                     isSectionsExpanded={isSectionsExpanded}
-                                    onNewSubsectionSubmit={handleNewSubsectionSubmit}
+                                    onNewUnitSubmit={handleNewUnitSubmitForSection}
                                     onOrderChange={updateSectionOrderByIndex}
                                   >
                                     <SortableContext
@@ -342,66 +343,70 @@ const CourseOutline = ({ courseId }) => {
                                       items={section.childInfo.children}
                                       strategy={verticalListSortingStrategy}
                                     >
-                                      {section.childInfo.children.map((subsection, subsectionIndex) => (
-                                        <SubsectionCard
-                                          key={subsection.id}
-                                          section={section}
-                                          subsection={subsection}
-                                          index={subsectionIndex}
-                                          getPossibleMoves={possibleSubsectionMoves(
-                                            [...sections],
-                                            sectionIndex,
-                                            section,
-                                            section.childInfo.children,
-                                          )}
-                                          isSelfPaced={statusBarData.isSelfPaced}
-                                          isCustomRelativeDatesActive={isCustomRelativeDatesActive}
-                                          savingStatus={savingStatus}
-                                          onOpenPublishModal={openPublishModal}
-                                          onOpenDeleteModal={openDeleteModal}
-                                          onEditSubmit={handleEditSubmit}
-                                          onDuplicateSubmit={handleDuplicateSubsectionSubmit}
-                                          onOpenConfigureModal={openConfigureModal}
-                                          onNewUnitSubmit={handleNewUnitSubmit}
-                                          onOrderChange={updateSubsectionOrderByIndex}
-                                          onPasteClick={handlePasteClipboardClick}
-                                        >
-                                          <SortableContext
-                                            id={subsection.id}
-                                            items={subsection.childInfo.children}
-                                            strategy={verticalListSortingStrategy}
+                                      {section.childInfo.children.map((subsection, subsectionIndex) => {
+                                        const subsectionForRender = { ...subsection, isHeaderVisible: false };
+
+                                        return (
+                                          <SubsectionCard
+                                            key={subsection.id}
+                                            section={section}
+                                            subsection={subsectionForRender}
+                                            index={subsectionIndex}
+                                            getPossibleMoves={possibleSubsectionMoves(
+                                              [...sections],
+                                              sectionIndex,
+                                              section,
+                                              section.childInfo.children,
+                                            )}
+                                            isSelfPaced={statusBarData.isSelfPaced}
+                                            isCustomRelativeDatesActive={isCustomRelativeDatesActive}
+                                            savingStatus={savingStatus}
+                                            onOpenPublishModal={openPublishModal}
+                                            onOpenDeleteModal={openDeleteModal}
+                                            onEditSubmit={handleEditSubmit}
+                                            onDuplicateSubmit={handleDuplicateSubsectionSubmit}
+                                            onOpenConfigureModal={openConfigureModal}
+                                            onNewUnitSubmit={handleNewUnitSubmit}
+                                            onOrderChange={updateSubsectionOrderByIndex}
+                                            onPasteClick={handlePasteClipboardClick}
                                           >
-                                            {subsection.childInfo.children.map((unit, unitIndex) => (
-                                              <UnitCard
-                                                key={unit.id}
-                                                unit={unit}
-                                                subsection={subsection}
-                                                section={section}
-                                                isSelfPaced={statusBarData.isSelfPaced}
-                                                isCustomRelativeDatesActive={isCustomRelativeDatesActive}
-                                                index={unitIndex}
-                                                getPossibleMoves={possibleUnitMoves(
-                                                  [...sections],
-                                                  sectionIndex,
-                                                  subsectionIndex,
-                                                  section,
-                                                  subsection,
-                                                  subsection.childInfo.children,
-                                                )}
-                                                savingStatus={savingStatus}
-                                                onOpenPublishModal={openPublishModal}
-                                                onOpenConfigureModal={openConfigureModal}
-                                                onOpenDeleteModal={openDeleteModal}
-                                                onEditSubmit={handleEditSubmit}
-                                                onDuplicateSubmit={handleDuplicateUnitSubmit}
-                                                getTitleLink={getUnitUrl}
-                                                onOrderChange={updateUnitOrderByIndex}
-                                                discussionsSettings={discussionsSettings}
-                                              />
-                                            ))}
-                                          </SortableContext>
-                                        </SubsectionCard>
-                                      ))}
+                                            <SortableContext
+                                              id={subsection.id}
+                                              items={subsection.childInfo.children}
+                                              strategy={verticalListSortingStrategy}
+                                            >
+                                              {subsection.childInfo.children.map((unit, unitIndex) => (
+                                                <UnitCard
+                                                  key={unit.id}
+                                                  unit={unit}
+                                                  subsection={subsection}
+                                                  section={section}
+                                                  isSelfPaced={statusBarData.isSelfPaced}
+                                                  isCustomRelativeDatesActive={isCustomRelativeDatesActive}
+                                                  index={unitIndex}
+                                                  getPossibleMoves={possibleUnitMoves(
+                                                    [...sections],
+                                                    sectionIndex,
+                                                    subsectionIndex,
+                                                    section,
+                                                    subsection,
+                                                    subsection.childInfo.children,
+                                                  )}
+                                                  savingStatus={savingStatus}
+                                                  onOpenPublishModal={openPublishModal}
+                                                  onOpenConfigureModal={openConfigureModal}
+                                                  onOpenDeleteModal={openDeleteModal}
+                                                  onEditSubmit={handleEditSubmit}
+                                                  onDuplicateSubmit={handleDuplicateUnitSubmit}
+                                                  getTitleLink={getUnitUrl}
+                                                  onOrderChange={updateUnitOrderByIndex}
+                                                  discussionsSettings={discussionsSettings}
+                                                />
+                                              ))}
+                                            </SortableContext>
+                                          </SubsectionCard>
+                                        );
+                                      })}
                                     </SortableContext>
                                   </SectionCard>
                                 ))}

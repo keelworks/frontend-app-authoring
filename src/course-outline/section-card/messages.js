@@ -9,6 +9,10 @@ const messages = defineMessages({
     id: 'course-authoring.course-outline.section.badge.section-highlights',
     defaultMessage: 'Section highlights',
   },
+  newUnitButton: {
+    id: 'course-authoring.course-outline.section.button.new-unit',
+    defaultMessage: 'New unit',
+  },
 });
 
 export default messages;

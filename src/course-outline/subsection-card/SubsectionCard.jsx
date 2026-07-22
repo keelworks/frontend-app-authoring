@@ -64,15 +64,12 @@ const SubsectionCard = ({
     proctoringExamConfigurationLink,
   } = subsection;
 
-  // re-create actions object for customizations
   const actions = { ...subsectionActions };
-  // add actions to control display of move up & down menu button.
   const moveUpDetails = getPossibleMoves(index, -1);
   const moveDownDetails = getPossibleMoves(index, 1);
   actions.allowMoveUp = !isEmpty(moveUpDetails);
   actions.allowMoveDown = !isEmpty(moveDownDetails);
 
-  // Expand the subsection if a search result should be shown/scrolled to
   const containsSearchResult = () => {
     if (locatorId) {
       return !!subsection.childInfo?.children?.filter((child) => child.id === locatorId).length;
@@ -136,19 +133,13 @@ const SubsectionCard = ({
   }, [activeId, overId]);
 
   useEffect(() => {
-    // if this items has been newly added, scroll to it.
-    // we need to check section.shouldScroll as whole section is fetched when a
-    // subsection is duplicated under it.
     if (currentRef.current && (section.shouldScroll || subsection.shouldScroll || isScrolledToElement)) {
-      // Align element closer to the top of the screen if scrolling for search result
       const alignWithTop = !!isScrolledToElement;
       scrollToElement(currentRef.current, alignWithTop);
     }
   }, [isScrolledToElement]);
 
   useEffect(() => {
-    // If the locatorId is set/changed, we need to make sure that the subsection is expanded
-    // if it contains the result, in order to scroll to it
     setIsExpanded((prevState) => (containsSearchResult() || prevState));
   }, [locatorId, setIsExpanded]);
 
@@ -159,9 +150,9 @@ const SubsectionCard = ({
   }, [savingStatus]);
 
   const isDraggable = (
-    actions.draggable
+    isHeaderVisible
+      && actions.draggable
       && (actions.allowMoveUp || actions.allowMoveDown)
-      && !(isHeaderVisible === false)
   );
 
   return (
@@ -170,14 +161,25 @@ const SubsectionCard = ({
       category={category}
       key={id}
       isDraggable={isDraggable}
-      isDroppable={actions.childAddable}
-      componentStyle={{
-        background: '#f8f7f6',
-        ...borderStyle,
-      }}
+      isDroppable={isHeaderVisible && actions.childAddable}
+      componentStyle={
+        isHeaderVisible
+          ? {
+            background: '#f8f7f6',
+            ...borderStyle,
+          }
+          : {
+            background: 'transparent',
+            padding: 0,
+            border: 'none',
+          }
+      }
     >
       <div
-        className={`subsection-card ${isScrolledToElement ? 'highlight' : ''}`}
+        className={classNames('subsection-card', {
+          highlight: isScrolledToElement,
+          'subsection-card--headerless': !isHeaderVisible,
+        })}
         data-testid="subsection-card"
         ref={currentRef}
       >

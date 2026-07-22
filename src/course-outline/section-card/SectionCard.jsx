@@ -35,7 +35,7 @@ const SectionCard = ({
   onOpenDeleteModal,
   onDuplicateSubmit,
   isSectionsExpanded,
-  onNewSubsectionSubmit,
+  onNewUnitSubmit,
   onOrderChange,
 }) => {
   const currentRef = useRef(null);
@@ -128,6 +128,15 @@ const SectionCard = ({
   // remove border when section is expanded
   const borderStyle = getItemStatusBorder(!isExpanded ? sectionStatus : '');
 
+  // Sections should show units directly. A hidden subsection still exists
+  // underneath (platform requires chapter -> sequential -> vertical), but
+  // once it exists its own SubsectionCard (isHeaderVisible: false) renders
+  // the real "New unit" button via `children`. Until that first subsection
+  // exists, there's nothing in `children` to render it, so this button
+  // covers that first-unit case by asking the parent to create the hidden
+  // subsection + first unit together.
+  const hasSubsection = !!section.childInfo?.children?.length;
+
   const handleExpandContent = () => {
     setIsExpanded((prevState) => !prevState);
   };
@@ -151,8 +160,8 @@ const SectionCard = ({
     onOpenHighlightsModal(section);
   };
 
-  const handleNewSubsectionSubmit = () => {
-    onNewSubsectionSubmit(id);
+  const handleNewUnitSubmit = () => {
+    onNewUnitSubmit(id);
   };
 
   const handleSectionMoveUp = () => {
@@ -246,16 +255,16 @@ const SectionCard = ({
               className={classNames('section-card__subsections', { 'item-children': isDraggable })}
             >
               {children}
-              {actions.childAddable && (
+              {!hasSubsection && actions.childAddable && (
                 <Button
-                  data-testid="new-subsection-button"
+                  data-testid="new-unit-button"
                   className="mt-4"
                   variant="outline-primary"
                   iconBefore={IconAdd}
                   block
-                  onClick={handleNewSubsectionSubmit}
+                  onClick={handleNewUnitSubmit}
                 >
-                  {intl.formatMessage(messages.newSubsectionButton)}
+                  {intl.formatMessage(messages.newUnitButton)}
                 </Button>
               )}
             </div>
@@ -313,7 +322,7 @@ SectionCard.propTypes = {
   onOpenDeleteModal: PropTypes.func.isRequired,
   onDuplicateSubmit: PropTypes.func.isRequired,
   isSectionsExpanded: PropTypes.bool.isRequired,
-  onNewSubsectionSubmit: PropTypes.func.isRequired,
+  onNewUnitSubmit: PropTypes.func.isRequired,
   index: PropTypes.number.isRequired,
   canMoveItem: PropTypes.func.isRequired,
   onOrderChange: PropTypes.func.isRequired,
