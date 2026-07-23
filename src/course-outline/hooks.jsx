@@ -29,6 +29,7 @@ import {
   addNewSectionQuery,
   addNewSubsectionQuery,
   addNewUnitQuery,
+  addNewUnitUnderSectionQuery,
   deleteCourseSectionQuery,
   deleteCourseSubsectionQuery,
   deleteCourseUnitQuery,
@@ -125,6 +126,23 @@ const useCourseOutline = ({ courseId }) => {
 
   const handleNewUnitSubmit = (subsectionId) => {
     dispatch(addNewUnitQuery(subsectionId, openUnitPage));
+  };
+
+  // Sections should show units directly, with no visible subsection layer.
+  // A hidden subsection still exists under the hood (the platform requires
+  // chapter -> sequential -> vertical), but the user never needs to see or
+  // manage it directly.
+  const handleNewUnitSubmitForSection = (sectionId) => {
+    const section = sectionsList.find((s) => s.id === sectionId);
+    const existingSubsectionId = section?.childInfo?.children?.[0]?.id;
+
+    if (existingSubsectionId) {
+      // Section already has its (hidden) subsection — just add another unit to it.
+      dispatch(addNewUnitQuery(existingSubsectionId, openUnitPage));
+    } else {
+      // First unit for this section — create the subsection + unit together.
+      dispatch(addNewUnitUnderSectionQuery(sectionId, openUnitPage));
+    }
   };
 
   const headerNavigationsActions = {
@@ -334,6 +352,7 @@ const useCourseOutline = ({ courseId }) => {
     getUnitUrl,
     openUnitPage,
     handleNewUnitSubmit,
+    handleNewUnitSubmitForSection,
     handleVideoSharingOptionChange,
     handlePasteClipboardClick,
     notificationDismissUrl,

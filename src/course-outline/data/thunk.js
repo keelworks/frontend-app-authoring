@@ -551,6 +551,53 @@ export function addNewUnitQuery(parentLocator, callback) {
   };
 }
 
+/**
+ * Creates a hidden subsection under a section, then a unit under that
+ * subsection, in one step — used so a section can show units directly
+ * with no visible subsection layer. The subsection itself still exists
+ * under the hood (the platform requires chapter -> sequential -> vertical),
+ * but the caller only needs to know about the resulting unit.
+ * @param {string} sectionId
+ * @param {(unitLocator) => void} callback
+ * @returns {}
+ */
+export function addNewUnitUnderSectionQuery(sectionId, callback) {
+  return async (dispatch) => {
+    dispatch(updateSavingStatus({ status: RequestStatus.PENDING }));
+    dispatch(showProcessingNotification(NOTIFICATION_MESSAGES.saving));
+
+    try {
+      const subsectionResult = await addNewCourseItem(
+        sectionId,
+        COURSE_BLOCK_NAMES.sequential.id,
+        COURSE_BLOCK_NAMES.sequential.name,
+      );
+
+      if (subsectionResult) {
+        const unitResult = await addNewCourseItem(
+          subsectionResult.locator,
+          COURSE_BLOCK_NAMES.vertical.id,
+          COURSE_BLOCK_NAMES.vertical.name,
+        );
+
+        if (unitResult) {
+          await dispatch(fetchCourseSectionQuery([sectionId], true));
+
+          dispatch(updateSavingStatus({ status: RequestStatus.SUCCESSFUL }));
+          dispatch(hideProcessingNotification());
+
+          if (callback) {
+            callback(unitResult.locator);
+          }
+        }
+      }
+    } catch (error) {
+      dispatch(hideProcessingNotification());
+      dispatch(updateSavingStatus({ status: RequestStatus.FAILED }));
+    }
+  };
+}
+
 function setBlockOrderListQuery(
   parentId,
   blockIds,
