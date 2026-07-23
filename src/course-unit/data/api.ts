@@ -31,6 +31,20 @@ export async function editUnitDisplayName(unitId: string, displayName: string): 
 }
 
 /**
+ * Edit course unit subtitle.
+ */
+export async function editUnitSubtitle(unitId: string, subtitle: string): Promise<object> {
+  const { data } = await getAuthenticatedHttpClient()
+    .post(getXBlockBaseApiUrl(unitId), {
+      metadata: {
+        subtitle,
+      },
+    });
+
+  return data;
+}
+
+/**
  * Fetch vertical block data from the container_handler endpoint.
  */
 export async function getVerticalData(unitId: string): Promise<object> {

@@ -35,6 +35,7 @@ import ConnectionErrorAlert from '../generic/ConnectionErrorAlert';
 import Loading from '../generic/Loading';
 import AddComponent from './add-component/AddComponent';
 import HeaderTitle from './header-title/HeaderTitle';
+import SubtitleBlock from './header-title/SubtitleBlock';
 import Breadcrumbs from './breadcrumbs/Breadcrumbs';
 import Sequence from './course-sequence';
 import { useCourseUnit, useHandleCreateNewCourseXBlock, useScrollToLastPosition } from './hooks';
@@ -200,6 +201,8 @@ const CourseUnit = () => {
     handleTitleEditSubmit,
     headerNavigationsActions,
     handleTitleEdit,
+    unitSubtitle,
+    handleSubtitleEditSubmit,
     courseVerticalChildren,
     canPasteComponent,
     isMoveModalOpen,
@@ -320,6 +323,11 @@ const CourseUnit = () => {
                   isPublished={courseUnit.published}
                 />
               }
+            />
+            <SubtitleBlock
+              subtitle={unitSubtitle}
+              onSubtitleChange={handleSubtitleEditSubmit}
+              readOnly={readOnly}
             />
             <div className="unit-header-status-bar h5 mt-2 mb-4 font-weight-normal">
               {isUnitPageNewDesignEnabled() && isUnitVerticalType && <StatusBar courseUnit={courseUnit} />}

@@ -9,6 +9,7 @@ import { createCourseXblock } from '@src/course-outline/data/api';
 import { messageTypes } from '../constants';
 import {
   editUnitDisplayName,
+  editUnitSubtitle,
   getVerticalData,
   getCourseContainerChildren,
   deleteUnitItem,
@@ -79,6 +80,29 @@ export function editCourseItemQuery(itemId, displayName, sequenceId) {
             modelType: 'units',
             models: courseSectionVerticalData.units || [],
           }));
+          dispatch(fetchSequenceSuccess({ sequenceId }));
+          dispatch(updateSavingStatus({ status: RequestStatus.SUCCESSFUL }));
+        }
+      });
+    } catch (error) {
+      handleResponseErrors(error, dispatch, updateSavingStatus);
+    } finally {
+      closeToastOutsideReact();
+    }
+  };
+}
+
+export function editCourseSubtitleQuery(itemId, subtitle, sequenceId) {
+  return async (dispatch) => {
+    dispatch(updateSavingStatus({ status: RequestStatus.PENDING }));
+    showToastOutsideReact(NOTIFICATION_MESSAGES.saving);
+
+    try {
+      await editUnitSubtitle(itemId, subtitle).then(async (result) => {
+        if (result) {
+          const courseSectionVerticalData = await getVerticalData(itemId);
+          dispatch(fetchCourseSectionVerticalDataSuccess(courseSectionVerticalData));
+          dispatch(updateLoadingCourseSectionVerticalDataStatus({ status: RequestStatus.SUCCESSFUL }));
           dispatch(fetchSequenceSuccess({ sequenceId }));
           dispatch(updateSavingStatus({ status: RequestStatus.SUCCESSFUL }));
         }
