@@ -15,7 +15,11 @@ const pluginConfig = ({ placeholder, editorType, enableImageUpload }) => {
   const statusbar = editorType !== 'expandable';
   const toolbar = editorType !== 'expandable';
   const autoresizeBottomMargin = editorType === 'expandable' ? 10 : 50;
-  const defaultFormat = (editorType === 'question' || editorType === 'expandable') ? 'div' : 'p';
+  const defaultFormat = {
+    question: 'div',
+    expandable: 'div',
+    header: 'h2',
+  }[editorType] ?? 'p';
   const hasStudioHeader = document.querySelector('.studio-header');
 
   return (
@@ -97,6 +101,18 @@ const pluginConfig = ({ placeholder, editorType, enableImageUpload }) => {
         block_formats:
           'Header 1=h1;Header 2=h2;Header 3=h3;Header 4=h4;Header 5=h5;Header 6=h6;Div=div;Paragraph=p;Preformatted=pre',
         forced_root_block: defaultFormat,
+        content_style: `
+          body { font-size: 1rem; line-height: 1.6; }
+          p    { margin-top: 0; margin-bottom: 1rem; }
+          h2   { font-size: 1.5rem; font-weight: 600; margin-top: 0; margin-bottom: 0.75rem; }
+        `,
+        setup: (editor) => {
+          editor.on('init', () => {
+            if (defaultFormat !== 'p' && defaultFormat !== 'div') {
+              editor.formatter.apply(defaultFormat);
+            }
+          });
+        },
         powerpaste_allow_local_images: true,
         powerpaste_word_import: 'prompt',
         powerpaste_html_import: 'prompt',
